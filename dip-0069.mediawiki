@@ -149,11 +149,73 @@ The size of each proof+vk is large (~0.9 KB as noted). This inherently limits ho
 
 To be safe, we can introduce policy limits: restrict standard transactions to at most one <code>OP_CHECKZKP</code> per script and and a maximum of 5 such transactions per block. These numbers can be adjusted.
 
-=== Benchmarks (Placeholder) ===
+=== Benchmarks ==
 
-Detailed benchmarks and performance testing of the verification routines are required to ensure that their execution remains within acceptable limits for standard node hardware and network conditions.
+To evaluate the performance and security impact of introducing `OP_CHECKZKP` to Dogecoin Script, we outline a benchmarking plan. This plan is divided into two components: (1) **baseline protocol-level benchmarks** that measure system-wide performance under ZKP usage, and (2) **ZKP-specific workload benchmarks** inspired by best practices from other chains (e.g., Ethereum's adoption of zero-knowledge precompiles).
 
-''Note: Detailed benchmarks will be added after implementation and testing. The final DIP will include tables & graphs here showing verification time vs. number of proofs, and comparisons of block propagation times, etc.''
+These benchmarks aim to inform the community and core developers of any practical trade-offs introduced by this soft fork, and to ensure the opcode performs safely under normal and adversarial workloads.
+
+=== 1. Protocol-Level Performance Benchmarks ===
+
+These tests use established Dogecoin benchmarking methodologies. They characterize `OP_CHECKZKP` performance in terms of block validation time, mempool behavior, and consensus edge cases.
+
+| **Test Name**            | **Description**                                          | **Metric(s) Collected**                  | **Notes**                     |
+|--------------------------|----------------------------------------------------------|------------------------------------------|-------------------------------|
+| **Block Validation Time** | Measure time to validate blocks with 0–N ZKP verifications  | Total block processing time (ms)          | Compare baseline vs. ZKP-heavy blocks |
+| **Mempool Stress Test**   | Fill the mempool with transactions using ZKPs              | Mempool size, eviction rate              | Near-full mempool conditions  |
+| **Reorg Revalidation**    | Trigger a chain reorganization involving 100+ ZKP verifications | Revalidation time (ms), orphan rate     | Test in offline vs. sync mode |
+
+=== 2. ZKP-Specific Workload Benchmarks ===
+
+To assess zero-knowledge proof verification in Dogecoin Script, we design targeted micro- and macro-benchmarks. These evaluate `OP_CHECKZKP` under common ZKP use cases (e.g., zk-rollups) and stress conditions.
+
+==== 2.1 Single-Proof Verification Benchmark ====
+- **Objective**: Measure the time and memory required to verify a single Groth16 proof on BLS12-381.
+- **Setup**: Execute a script containing one `OP_CHECKZKP` (Mode 0 stack layout).
+- **Metrics**: Execution time (ms), peak memory (MB).
+- **Test Platforms**:  
+  - Intel i7: `_____ ms`, `_____ MB`
+  - M1 Mac: `_____ ms`,  `_____ MB`
+  - Raspberry Pi 5: `_____ ms`,  `_____ MB`
+
+==== 2.2 Multi-Proof Block Benchmark ====
+- **Objective**: Analyze the impact of verifying many proofs (e.g., 5–500) in one block.
+- **Setup**: Simulate blocks filled with transactions each containing an `OP_CHECKZKP` verification.
+- **Metrics**: Total block validation time, average per-proof time (ms), full node CPU%, peak RAM usage.
+- **Results (to be collected)**:
+
+  | # Proofs | Total Time (ms) | Avg Per-Proof (ms) | CPU Usage (%) | RAM (MB) |
+  |----------|-----------------|--------------------|---------------|---------|
+  | 5        |                 |                    |               |         |
+  | 10       |                 |                    |               |         |
+  | 50       |                 |                    |               |         |
+  | 100      |                 |                    |               |         |
+
+==== 2.3 Verifying Key Reuse Benchmark ====
+- **Objective**: Quantify the cost difference between reusing a verifier key vs. parsing a new key for each proof.
+- **Setup**: Verify the same proof repeatedly using the same verifying key versus using unique keys each time.
+- **Metrics**: Total validation time, verifier key parse time (ms), memory usage.
+- **Scenarios**:  
+  - With key reuse:  
+  - Without reuse:  
+
+==== 2.4 Propagation & Orphan Risk Test ====
+- **Objective**: Assess latency and fork/orphan risk when blocks contain a high density of ZKP verifications.
+- **Setup**: On the Dogechain testnet, broadcast blocks packed with `OP_CHECKZKP` transactions.
+- **Metrics**: Gossip propagation delay (ms), orphan block rate, miner selection latency.
+- **Observations**:  
+  - Average propagation:  
+  - Orphan frequency (out of 5 trials):  
+
+==== 2.5 Policy Compliance Testing ====
+- **Objective**: Test the enforcement of proposed soft policy limits (e.g., 1 `OP_CHECKZKP` per transaction, 5 per block).
+- **Setup**: Generate transactions and blocks that intentionally violate the ZKP-count policy limits.
+- **Metrics**: Rejection rate of non-compliant transactions, correctness of mempool acceptance (no false accepts).
+- **Outcomes**:  
+  - Violations correctly rejected:  
+  - False negatives (violations accepted):  
+
+''Note: Detailed benchmarks will be added after implementation and testing.''
 
 == Future Extensions ==
 

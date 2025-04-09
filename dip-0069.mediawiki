@@ -4,6 +4,7 @@ Layer: Consensus (soft fork)
 Title: OP_CHECKZKP - Native Zero-Knowledge Proof Verification
 Author: Hanzhi Liu <hanzhi@riema.xyz>
         Hongbo Wen <hongbo@riema.xyz>
+        Chaofan Shou <shou@fuzz.land>
         Yu Feng <yu@riema.xyz>
 Status: Draft
 Type: Standards Track

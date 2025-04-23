@@ -68,7 +68,7 @@ OP_CHECKZKP
 <source lang="cpp">
 enum ZKPMode : uint32_t { GROTH16 = 0 };
 
-case OP_ZKPVERIFY:
+case OP_CHECKZKP:
 {
     // Ensure at least mode present
     if (stack.size() < 1) {
